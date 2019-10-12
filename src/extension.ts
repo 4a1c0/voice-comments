@@ -102,7 +102,7 @@ function listen(context: vscode.ExtensionContext){
 		checkJREprocess.kill();
 	});
 	checkJREprocess.on('exit', (code, signal) => {
-		if (checkJRE === true) { var listener = new VoiceListener(context, platform()); }
+		if (checkJRE === true) { var listener = new VoiceListener(context, platform(), false); }
 		else { showJErrorMsg(); }
 	});
 }
@@ -145,12 +145,14 @@ class VoiceListener {
 	private execFile;
 	// @ts-ignore
 	private child;
+	private side = false;
 	private sttbar: SttBarItem;
   
-	constructor(context: vscode.ExtensionContext, type: String) {
+	constructor(context: vscode.ExtensionContext, type: String, inline: boolean) {
 	  this.sysType = type;
 	  this.execFile = spawn;
 	  this.sttbar = new SttBarItem();
+	  this.side = inline;
 	  const d1 = vscode.commands.registerCommand('toggle', () => {
 		if (this.sttbar.getSttText() === 'on') {
 		  this.sttbar.off();
@@ -181,7 +183,11 @@ class VoiceListener {
 		  vscode.window.setStatusBarMessage(data.toString(), 1000);
 		  //let centralCmd = new CommandsClass();
 		  console.log(data.toString());
-		  addComment(data.toString().trimRight());
+		  if (this.side) {
+			addCommentSide(data.toString().trimRight());
+		  } else {
+			addComment(data.toString().trimRight());
+		  }
 		  //centralCmd.runCmd(data.toString().trim());
 
 		});
@@ -211,12 +217,19 @@ export function activate(context: vscode.ExtensionContext) {
 	console.log('Congratulations, your extension "voice-comments" is now active!');
 
 	var comment = vscode.commands.registerCommand('extension.comment', () => {
-		//addComment('Comment');
-		addCommentSide('Side Comment');
+		addComment('Comment');
 	});
+
 	context.subscriptions.push(comment);
 
-	var listen = vscode.commands.registerCommand('extension.listen', () => {
+	var sideComment = vscode.commands.registerCommand('extension.iComment', () => {
+		addCommentSide('Side Comment');
+	});
+
+	context.subscriptions.push(sideComment);
+
+
+	var listen = vscode.commands.registerCommand('extension.voiceComment', () => {
 		let checkJRE = false;
 		// window.showInformationMessage('This is Voice Command! activated');
 		const checkJREprocess = spawn('java', ['-version']).on('error', err => showJErrorMsg());
@@ -226,26 +239,29 @@ export function activate(context: vscode.ExtensionContext) {
 			checkJREprocess.kill();
 		});
 		checkJREprocess.on('exit', (code, signal) => {
-			if (checkJRE === true) { var listener = new VoiceListener(context, platform()); }
+			if (checkJRE === true) { var listener = new VoiceListener(context, platform(), false); }
 			else { showJErrorMsg(); }
 		});
 	});
+
 	context.subscriptions.push(listen);
 
-
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
-	let disposable = vscode.commands.registerCommand('extension.voiceComment', () => {
-		// The code you place here will be executed every time your command is executed
-
-		// Display a message box to the user
-		vscode.window.showInformationMessage('This is a Comment!');
+	var sideListen = vscode.commands.registerCommand('extension.iVoiceComment', () => {
+		let checkJRE = false;
+		// window.showInformationMessage('This is Voice Command! activated');
+		const checkJREprocess = spawn('java', ['-version']).on('error', err => showJErrorMsg());
+		checkJREprocess.stderr.on('data', (data: Buffer) => {
+			// console.log(data.toString())
+			if (data.indexOf('version') >= 0) { checkJRE = true; }
+			checkJREprocess.kill();
+		});
+		checkJREprocess.on('exit', (code, signal) => {
+			if (checkJRE === true) { var listener = new VoiceListener(context, platform(), true); }
+			else { showJErrorMsg(); }
+		});
 	});
 
-
-
-	context.subscriptions.push(disposable);
+	context.subscriptions.push(sideListen);
 }
 
 // this method is called when your extension is deactivated

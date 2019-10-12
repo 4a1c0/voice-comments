@@ -10,24 +10,29 @@
 		"Other"
 	],
 	"activationEvents": [
+		"onCommand:extension.iVoiceComment",
 		"onCommand:extension.voiceComment",
-		"onCommand:extension.comment",
-		"onCommand:extension.listen"
+		"onCommand:extension.iComment",
+		"onCommand:extension.comment"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
 		"commands": [
 			{
+				"command": "extension.iVoiceComment",
+				"title": "Inline Voice Comment"
+			},
+			{
 				"command": "extension.voiceComment",
 				"title": "Voice Comment"
 			},
 			{
-				"command": "extension.comment",
-				"title": "Comment"
+				"command": "extension.iComment",
+				"title": "Inline Comment"
 			},
 			{
-				"command": "extension.listen",
-				"title": "Listen"
+				"command": "extension.comment",
+				"title": "Comment"
 			}
 		]
 	},
