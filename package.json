@@ -10,14 +10,19 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onCommand:extension.helloWorld"
+		"onCommand:extension.voiceComment",
+		"onCommand:extension.comment"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
 		"commands": [
 			{
-				"command": "extension.helloWorld",
-				"title": "Hello World"
+				"command": "extension.voiceComment",
+				"title": "Voice Comment"
+			},
+			{
+				"command": "extension.comment",
+				"title": "Comment"
 			}
 		]
 	},
