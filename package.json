@@ -2,8 +2,8 @@
 	"name": "voice-comments",
 	"displayName": "Voice Comments",
 	"description": "Helps write comments with voice",
-	"version": "0.1.2",
-  	"publisher": "4a1c0",
+	"version": "0.2.0",
+	"publisher": "4a1c0",
 	"engines": {
 		"vscode": "^1.39.0"
 	},
@@ -23,11 +23,11 @@
 			"type": "object",
 			"title": "Voice Comments",
 			"properties": {
-					"extension.language": {
-							"type": "string",
-							"default": "en-US",
-							"markdownDescription": "**Some bold text**\nYes or no?"
-					}
+				"extension.language": {
+					"type": "string",
+					"default": "en-US",
+					"markdownDescription": "**Some bold text**\nYes or no?"
+				}
 			}
 		},
 		"commands": [
@@ -59,7 +59,7 @@
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/4a1c0/voice-comments"
-	  },
+	},
 	"devDependencies": {
 		"@types/glob": "^7.1.1",
 		"@types/mocha": "^5.2.6",
