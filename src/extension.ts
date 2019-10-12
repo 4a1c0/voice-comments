@@ -102,10 +102,42 @@ function listen(context: vscode.ExtensionContext){
 		checkJREprocess.kill();
 	});
 	checkJREprocess.on('exit', (code, signal) => {
-		if (checkJRE === true) { var listener = new VoiceListener(context, platform(), false); }
+		if (checkJRE === true) { var listener = new VoiceListener(context, platform()); }
 		else { showJErrorMsg(); }
 	});
 }
+
+class SttBarItemSide {
+	private statusBarItem: vscode.StatusBarItem;
+	private stt: string;
+  
+	constructor() {
+	  this.statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 10);
+	  this.stt = "off";
+	  this.off();
+	}
+  
+	on() {
+	  this.statusBarItem.text = '💬 side listening';
+	  this.statusBarItem.show();
+	  this.stt = 'on';
+	}
+  
+	off() {
+	  this.statusBarItem.text = '✖️️ side stop';
+	  this.statusBarItem.show();
+	  this.stt = 'off';
+	}
+
+  
+	getSttText() {
+	  return this.stt;
+	}
+  
+	setSttCmd(cmd: string | undefined) {
+	  this.statusBarItem.command = cmd;
+	}
+  }
 
 class SttBarItem {
 	private statusBarItem: vscode.StatusBarItem;
@@ -139,6 +171,64 @@ class SttBarItem {
 	}
   }
 
+class VoiceListenerSide {
+private sysType: String;
+// @ts-ignore
+private execFile;
+// @ts-ignore
+private child;
+private side = false;
+private sttbar: SttBarItemSide;  
+constructor(context: vscode.ExtensionContext, type: String) {
+	this.sysType = type;
+	this.execFile = spawn;
+	this.sttbar = new SttBarItemSide();
+	const d1 = vscode.commands.registerCommand('toggleS', () => {
+	if (this.sttbar.getSttText() === 'on') {
+		this.sttbar.off();
+		this.killed();
+	} else {
+		this.sttbar.on();
+		this.run();
+	}
+	});
+	const d2 = vscode.commands.registerCommand('stop_listenS', () => {
+	this.sttbar.off();
+	this.killed();
+	});
+	context.subscriptions.concat([d1, d2]);
+	this.sttbar.setSttCmd('toggleS');
+}
+
+run() {
+	if (this.sysType === 'win32') {
+	// console.log('Using Microsoft Speech Platform')
+	this.child = this.execFile(join(__dirname, 'WordsMatching.exe')).on('error', (error: any) => showError(error));
+	} else {
+	// console.log('Using CMUSphinx Voice Recognition')
+	this.child = this.execFile('python3', [ join(__dirname, '../speech/speechTest.py')]).on('error', (error: any) => showError(error));
+	}
+	this.child.stdout.on('data',
+	(data: Buffer) => {
+		vscode.window.setStatusBarMessage(data.toString(), 1000);
+		console.log(data.toString());
+		addCommentSide(data.toString().trimRight());
+	});
+
+	this.child.stderr.on('data', (data: any) => showError(data.toString()));
+
+	function showError(error: any) {
+	vscode.window.showInformationMessage(`Something went wrong Sorry 😢 - ${error}`);
+	}
+}
+
+killed() {
+	this.child.stdin.write('sda');
+	this.child.stdin.end();
+	//this.child.kill();
+}
+}
+
 class VoiceListener {
 	private sysType: String;
 	// @ts-ignore
@@ -146,20 +236,18 @@ class VoiceListener {
 	// @ts-ignore
 	private child;
 	private side = false;
-	private sttbar: SttBarItem;
-  
-	constructor(context: vscode.ExtensionContext, type: String, inline: boolean) {
+	private sttbar: SttBarItem;  
+	constructor(context: vscode.ExtensionContext, type: String) {
 	  this.sysType = type;
 	  this.execFile = spawn;
 	  this.sttbar = new SttBarItem();
-	  this.side = inline;
 	  const d1 = vscode.commands.registerCommand('toggle', () => {
 		if (this.sttbar.getSttText() === 'on') {
-		  this.sttbar.off();
-		  this.killed();
+			this.sttbar.off();
+			this.killed();
 		} else {
-		  this.sttbar.on();
-		  this.run();
+			this.sttbar.on();
+			this.run();
 		}
 	  });
 	  const d2 = vscode.commands.registerCommand('stop_listen', () => {
@@ -181,15 +269,8 @@ class VoiceListener {
 	  this.child.stdout.on('data',
 		(data: Buffer) => {
 		  vscode.window.setStatusBarMessage(data.toString(), 1000);
-		  //let centralCmd = new CommandsClass();
 		  console.log(data.toString());
-		  if (this.side) {
-			addCommentSide(data.toString().trimRight());
-		  } else {
-			addComment(data.toString().trimRight());
-		  }
-		  //centralCmd.runCmd(data.toString().trim());
-
+		  addComment(data.toString().trimRight());
 		});
   
 	  this.child.stderr.on('data', (data: any) => showError(data.toString()));
@@ -239,7 +320,7 @@ export function activate(context: vscode.ExtensionContext) {
 			checkJREprocess.kill();
 		});
 		checkJREprocess.on('exit', (code, signal) => {
-			if (checkJRE === true) { var listener = new VoiceListener(context, platform(), false); }
+			if (checkJRE === true) { var listener = new VoiceListener(context, platform()); }
 			else { showJErrorMsg(); }
 		});
 	});
@@ -256,7 +337,7 @@ export function activate(context: vscode.ExtensionContext) {
 			checkJREprocess.kill();
 		});
 		checkJREprocess.on('exit', (code, signal) => {
-			if (checkJRE === true) { var listener = new VoiceListener(context, platform(), true); }
+			if (checkJRE === true) { var listener = new VoiceListenerSide(context, platform()); }
 			else { showJErrorMsg(); }
 		});
 	});
