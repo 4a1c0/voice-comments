@@ -9,6 +9,51 @@ import * as vscode from 'vscode';
 import { pipeline } from 'stream';
 
 
+function addCommentSide (option: string) {
+
+	var editor = vscode.window.activeTextEditor;
+	if (editor){
+		var localEditor = editor;
+		const position = localEditor.selection.active;
+		vscode.commands.executeCommand('acceptSelectedSuggestion').then(() => {
+			
+			vscode.commands.executeCommand('editor.action.insertLineAfter').then(() => {
+				var lineIndex = localEditor.selection.active.line;
+				var lineObject = localEditor.document.lineAt(lineIndex);
+				var line = lineObject.text;
+				var insertionSuccess = localEditor.edit((editBuilder) => {
+				editBuilder.insert(new vscode.Position(lineIndex, 0), option);
+				
+				});
+		
+				if (!insertionSuccess) {return;}
+				vscode.commands.executeCommand('editor.action.commentLine').then(() => {
+					var lineObjectComment = localEditor.document.lineAt(lineIndex);
+					var lineComment = lineObjectComment.text;
+					localEditor.edit((editBuilder) => {
+						editBuilder.insert(new vscode.Position(lineIndex-1, line.length + 9999999 ), '  ' + lineComment);
+						
+					});
+					
+					var pos = new vscode.Position(position.line, position.character);
+					var posComment = new vscode.Position(position.line+1, position.character);
+					var commentSelection = new vscode.Selection(posComment, posComment);
+					var newSelection = new vscode.Selection(pos, pos);
+					localEditor.selection = commentSelection;
+					vscode.commands.executeCommand('editor.action.deleteLines').then(() => {
+						localEditor.selection = newSelection;
+					});
+					
+				});
+				
+				
+			});
+		});
+	}else {
+		return;
+	}
+}
+
 // Function that adds the comment above the current line with indentation
 function addComment (option: string) {
 
@@ -43,17 +88,17 @@ function addComment (option: string) {
 }
 
 function showJErrorMsg() {
-	vscode.window.showInformationMessage('Please install JRE(JDK for MacOS) in order to run this extension!!!');
+	vscode.window.showInformationMessage('Please install Python3 in order to run this extension!!!');
 }
 
 
 function listen(context: vscode.ExtensionContext){
 	let checkJRE = false;
 	// window.showInformationMessage('This is Voice Command! activated');
-	const checkJREprocess = spawn('java', ['-version']).on('error', err => showJErrorMsg());
+	const checkJREprocess = spawn('python3', ['--version']).on('error', err => showJErrorMsg());
 	checkJREprocess.stderr.on('data', (data: Buffer) => {
 		// console.log(data.toString())
-		if (data.indexOf('version') >= 0) { checkJRE = true; }
+		if (data.indexOf('n 3') >= 0) { checkJRE = true; }
 		checkJREprocess.kill();
 	});
 	checkJREprocess.on('exit', (code, signal) => {
@@ -166,7 +211,8 @@ export function activate(context: vscode.ExtensionContext) {
 	console.log('Congratulations, your extension "voice-comments" is now active!');
 
 	var comment = vscode.commands.registerCommand('extension.comment', () => {
-		addComment('Coment');
+		//addComment('Comment');
+		addCommentSide('Side Comment');
 	});
 	context.subscriptions.push(comment);
 
