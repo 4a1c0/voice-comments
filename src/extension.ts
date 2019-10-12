@@ -129,27 +129,27 @@ class VoiceListener {
 		this.child = this.execFile(join(__dirname, 'WordsMatching.exe')).on('error', (error: any) => showError(error));
 	  } else {
 		// console.log('Using CMUSphinx Voice Recognition')
-		this.child = this.execFile('python3', [ join(__dirname, '../speech/speechtest.py')]).on('error', (error: any) => showError(error));
+		this.child = this.execFile('python3', [ join(__dirname, '../speech/speechTest.py')]).on('error', (error: any) => showError(error));
 	  }
 	  this.child.stdout.on('data',
 		(data: Buffer) => {
 		  vscode.window.setStatusBarMessage(data.toString(), 1000);
 		  //let centralCmd = new CommandsClass();
 		  console.log(data.toString());
-		  addComment(data.toString());
+		  addComment(data.toString().trimRight());
 		  //centralCmd.runCmd(data.toString().trim());
 
 		});
   
-	  this.child.stderr.on('data', (data: any) => console.log(data.toString()));
+	  this.child.stderr.on('data', (data: any) => showError(data.toString()));
   
 	  function showError(error: any) {
-		vscode.window.showInformationMessage(`Something went wrong with Voice Commands!!! Sorry 😢 - ${error}`);
+		vscode.window.showInformationMessage(`Something went wrong Sorry 😢 - ${error}`);
 	  }
 	}
   
 	killed() {
-		this.child.stdin.write('s');
+		this.child.stdin.write('sda');
 		this.child.stdin.end();
 	  //this.child.kill();
 	}

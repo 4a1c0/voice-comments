@@ -5,25 +5,22 @@
 import speech_recognition as sr
 import sys
 
-def callback(recognizer, audio):                          # this is called from the background thread
-    try:
-        print(recognizer.recognize_google(audio))  # received audio data, now need to recognize it
-        sys.stdout.flush()
-    except LookupError:
-        print("Oops! Didn't catch that")
-    except sr.UnknownValueError:
-        print("Google Speech Recognition could not understand audio")
-    except sr.RequestError as e:
-        print("Could not request results from Google Speech Recognition service; {0}".format(e))
 r = sr.Recognizer()
-m = sr.Microphone()
-with m as source: r.adjust_for_ambient_noise(source)      # we only need to calibrate once, before we start listening
-stop_listening = r.listen_in_background(m, callback)
+with sr.Microphone() as source:                # use the default microphone as the audio source
+    #r.adjust_for_ambient_noise(source)         # listen for 1 second to calibrate the energy threshold for ambient noise levels
+    audio = r.listen(source)                   # now when we listen, the energy threshold is already set to a good value, and we can reliably catch speech right away
 
-import time
-sys.stdin.read(1)
-stop_listening()                                          # call the stop function to stop the background thread
+input()
 
+try:
+    print(r.recognize_google(audio))    # recognize speech using Google Speech Recognition
+except sr.UnknownValueError:
+    sys.stderr.write("Google Speech Recognition could not understand audio")
+except sr.RequestError as e:
+    sys.stderr.write("Could not request results from Google Speech Recognition service; {0}".format(e))
+sys.stdout.flush()
+
+                                         # call the stop function to stop the background thread
 
 # # obtain audio from the microphone
 # r = sr.Recognizer()
