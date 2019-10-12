@@ -6,6 +6,7 @@ import { spawn } from 'child_process';
 import { platform } from 'os';
 import { join } from 'path';
 import * as vscode from 'vscode';
+import { pipeline } from 'stream';
 
 
 // Function that adds the comment above the current line with indentation
@@ -135,6 +136,7 @@ class VoiceListener {
 		  vscode.window.setStatusBarMessage(data.toString(), 1000);
 		  //let centralCmd = new CommandsClass();
 		  console.log(data.toString());
+		  addComment(data.toString());
 		  //centralCmd.runCmd(data.toString().trim());
 
 		});
@@ -147,7 +149,9 @@ class VoiceListener {
 	}
   
 	killed() {
-	  this.child.kill();
+		this.child.stdin.write('s');
+		this.child.stdin.end();
+	  //this.child.kill();
 	}
   }
   
