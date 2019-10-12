@@ -128,14 +128,15 @@ class VoiceListener {
 		this.child = this.execFile(join(__dirname, 'WordsMatching.exe')).on('error', (error: any) => showError(error));
 	  } else {
 		// console.log('Using CMUSphinx Voice Recognition')
-		this.child = this.execFile('java', ['-jar', join(__dirname, 'WordsListener.jar')]).on('error', (error: any) => showError(error));
+		this.child = this.execFile('python3', [ join(__dirname, '../speech/speechtest.py')]).on('error', (error: any) => showError(error));
 	  }
 	  this.child.stdout.on('data',
 		(data: Buffer) => {
 		  vscode.window.setStatusBarMessage(data.toString(), 1000);
 		  //let centralCmd = new CommandsClass();
-		  // console.log(data.toString());
+		  console.log(data.toString());
 		  //centralCmd.runCmd(data.toString().trim());
+
 		});
   
 	  this.child.stderr.on('data', (data: any) => console.log(data.toString()));
