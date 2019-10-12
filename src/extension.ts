@@ -6,7 +6,7 @@ import { spawn } from 'child_process';
 import { platform } from 'os';
 import { join } from 'path';
 import * as vscode from 'vscode';
-import { pipeline } from 'stream';
+//import { pipeline } from 'stream';
 
 
 function addCommentSide (option: string) {
@@ -92,20 +92,20 @@ function showJErrorMsg() {
 }
 
 
-function listen(context: vscode.ExtensionContext){
-	let checkJRE = false;
-	// window.showInformationMessage('This is Voice Command! activated');
-	const checkJREprocess = spawn('python3', ['--version']).on('error', err => showJErrorMsg());
-	checkJREprocess.stderr.on('data', (data: Buffer) => {
-		// console.log(data.toString())
-		if (data.indexOf('n 3') >= 0) { checkJRE = true; }
-		checkJREprocess.kill();
-	});
-	checkJREprocess.on('exit', (code, signal) => {
-		if (checkJRE === true) { var listener = new VoiceListener(context, platform()); }
-		else { showJErrorMsg(); }
-	});
-}
+// function listen(context: vscode.ExtensionContext){
+// 	let checkJRE = false;
+// 	// window.showInformationMessage('This is Voice Command! activated');
+// 	const checkJREprocess = spawn('python3', ['--version']).on('error', err => showJErrorMsg());
+// 	checkJREprocess.stderr.on('data', (data: Buffer) => {
+// 		// console.log(data.toString())
+// 		if (data.indexOf('n 3') >= 0) { checkJRE = true; }
+// 		checkJREprocess.kill();
+// 	});
+// 	checkJREprocess.on('exit', (code, signal) => {
+// 		if (checkJRE === true) { var listener = new VoiceListener(context, platform()); }
+// 		else { showJErrorMsg(); }
+// 	});
+// }
 
 class SttBarItemSide {
 	private statusBarItem: vscode.StatusBarItem;
@@ -179,7 +179,7 @@ private execFile;
 private child;
 private side = false;
 private sttbar: SttBarItemSide;  
-constructor(context: vscode.ExtensionContext, type: String) {
+constructor(context: vscode.ExtensionContext, type: String, lang: String) {
 	this.sysType = type;
 	this.execFile = spawn;
 	this.sttbar = new SttBarItemSide();
@@ -189,7 +189,7 @@ constructor(context: vscode.ExtensionContext, type: String) {
 		this.killed();
 	} else {
 		this.sttbar.on();
-		this.run();
+		this.run(lang);
 	}
 	});
 	const d2 = vscode.commands.registerCommand('stop_listenS', () => {
@@ -200,13 +200,13 @@ constructor(context: vscode.ExtensionContext, type: String) {
 	this.sttbar.setSttCmd('toggleS');
 }
 
-run() {
+run(lang: String) {
 	if (this.sysType === 'win32') {
 	// console.log('Using Microsoft Speech Platform')
 	this.child = this.execFile(join(__dirname, 'WordsMatching.exe')).on('error', (error: any) => showError(error));
 	} else {
 	// console.log('Using CMUSphinx Voice Recognition')
-	this.child = this.execFile('python3', [ join(__dirname, '../speech/speechTest.py')]).on('error', (error: any) => showError(error));
+	this.child = this.execFile('python3', [ join(__dirname, '../speech/speechTest.py'),lang.toString()]).on('error', (error: any) => showError(error));
 	}
 	this.child.stdout.on('data',
 	(data: Buffer) => {
@@ -237,7 +237,7 @@ class VoiceListener {
 	private child;
 	private side = false;
 	private sttbar: SttBarItem;  
-	constructor(context: vscode.ExtensionContext, type: String) {
+	constructor(context: vscode.ExtensionContext, type: String, lang: String) {
 	  this.sysType = type;
 	  this.execFile = spawn;
 	  this.sttbar = new SttBarItem();
@@ -247,7 +247,7 @@ class VoiceListener {
 			this.killed();
 		} else {
 			this.sttbar.on();
-			this.run();
+			this.run(lang);
 		}
 	  });
 	  const d2 = vscode.commands.registerCommand('stop_listen', () => {
@@ -258,13 +258,13 @@ class VoiceListener {
 	  this.sttbar.setSttCmd('toggle');
 	}
   
-	run() {
+	run(lang: String) {
 	  if (this.sysType === 'win32') {
 		// console.log('Using Microsoft Speech Platform')
 		this.child = this.execFile(join(__dirname, 'WordsMatching.exe')).on('error', (error: any) => showError(error));
 	  } else {
 		// console.log('Using CMUSphinx Voice Recognition')
-		this.child = this.execFile('python3', [ join(__dirname, '../speech/speechTest.py')]).on('error', (error: any) => showError(error));
+		this.child = this.execFile('python3', [ join(__dirname, '../speech/speechTest.py'), lang.toString()]).on('error', (error: any) => showError(error));
 	  }
 	  this.child.stdout.on('data',
 		(data: Buffer) => {
@@ -293,6 +293,8 @@ class VoiceListener {
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
 
+	const lang: string = (vscode.workspace.getConfiguration().get('extension.language') === undefined)? 'en-US': String(vscode.workspace.getConfiguration().get('extension.language'));
+
 	// Use the console to output diagnostic information (console.log) and errors (console.error)
 	// This line of code will only be executed once when your extension is activated
 	console.log('Congratulations, your extension "voice-comments" is now active!');
@@ -320,7 +322,7 @@ export function activate(context: vscode.ExtensionContext) {
 			checkJREprocess.kill();
 		});
 		checkJREprocess.on('exit', (code, signal) => {
-			if (checkJRE === true) { var listener = new VoiceListener(context, platform()); }
+			if (checkJRE === true) { var listener = new VoiceListener(context, platform(), lang); }
 			else { showJErrorMsg(); }
 		});
 	});
@@ -337,7 +339,7 @@ export function activate(context: vscode.ExtensionContext) {
 			checkJREprocess.kill();
 		});
 		checkJREprocess.on('exit', (code, signal) => {
-			if (checkJRE === true) { var listener = new VoiceListenerSide(context, platform()); }
+			if (checkJRE === true) { var listener = new VoiceListenerSide(context, platform(), lang); }
 			else { showJErrorMsg(); }
 		});
 	});

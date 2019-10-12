@@ -43,3 +43,7 @@ Initial release of the extension
 ### 0.1.1
 
 Icon
+
+### 0.1.2
+
+Add diferent languages

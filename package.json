@@ -2,7 +2,7 @@
 	"name": "voice-comments",
 	"displayName": "Voice Comments",
 	"description": "Helps write comments with voice",
-	"version": "0.1.1",
+	"version": "0.1.2",
   	"publisher": "4a1c0",
 	"engines": {
 		"vscode": "^1.39.0"
@@ -19,6 +19,17 @@
 	],
 	"main": "./out/extension.js",
 	"contributes": {
+		"configuration": {
+			"type": "object",
+			"title": "Voice Comments",
+			"properties": {
+					"extension.language": {
+							"type": "string",
+							"default": "en-US",
+							"markdownDescription": "**Some bold text**\nYes or no?"
+					}
+			}
+		},
 		"commands": [
 			{
 				"command": "extension.iVoiceComment",
@@ -38,22 +49,6 @@
 			}
 		]
 	},
-	"configuration": {
-        "type": "object",
-        "title": "Test configuration",
-        "properties": {
-                "test.usingUI": {
-                        "type": "boolean",
-                        "default": false,
-                        "markdownDescription": "**Some bold text**\nYes or no?"
-                },
-                "test.text": {
-                        "type": ["string", "null"],
-                        "default": null,
-                        "description": "You can't edit me now!"
-                }
-        }
-    },
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
 		"compile": "tsc -p ./",

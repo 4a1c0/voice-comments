@@ -5,6 +5,8 @@
 import speech_recognition as sr
 import sys
 
+lang = sys.argv[1]
+
 r = sr.Recognizer()
 with sr.Microphone() as source:                # use the default microphone as the audio source
     r.adjust_for_ambient_noise(source)         # listen for 1 second to calibrate the energy threshold for ambient noise levels
@@ -13,7 +15,7 @@ with sr.Microphone() as source:                # use the default microphone as t
 input()
 
 try:
-    print(r.recognize_google(audio))    # recognize speech using Google Speech Recognition
+    print(r.recognize_google(audio, language=lang))    # recognize speech using Google Speech Recognition
 except sr.UnknownValueError:
     sys.stderr.write("Google Speech Recognition could not understand audio")
 except sr.RequestError as e:
