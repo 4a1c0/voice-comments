@@ -1,10 +1,10 @@
-# voice-comments README
+# voice-comments 
 
-This is the README for your extension "voice-comments". After writing up a brief description, we recommend including the following sections.
+This is the README for your extension "voice-comments". Use your voice to add comments while programing.
 
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+Speak while programming to document the code
 
 For example if there is an image subfolder under your extension project workspace:
 

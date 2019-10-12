@@ -3,8 +3,9 @@
 	"displayName": "Voice Comments",
 	"description": "Helps write comments with voice",
 	"version": "0.1.0",
+  	"publisher": "4a1c0",
 	"engines": {
-		"vscode": "^1.38.0"
+		"vscode": "^1.39.0"
 	},
 	"categories": [
 		"Other"
