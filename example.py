@@ -1,17 +1,14 @@
 #!/bin/env python3
 
-import Fractions
-
-def fibonachi()
-    a = b = 1
+def fibonachi(n=5):
+    a = b = c = 1
     yield a
     yield b
-    while True:
+    while c < n:
         c = a + b
         a = b
         b = c
         yield c
 
-f = fibonachi()
-for _ in range(int(input())):
+for f in fibonachi(int(input("Fibonachi until after: nº "))):
     print(f)
