@@ -9,10 +9,9 @@ This VS Code add-on uses speech recognition to transform the coder's verbal word
 
 ## How we built it
 
-The first step to start working on this project was to be able to use a Visual Code API, to accomplish this first point, a simple tutorial provided by Microsoft was followed (https://github.com/Microsoft/vscode-extension-samples/tree/master/helloworld-sample). 
+The first step to start working on this project was to be able to use a Visual Code API, to accomplish this first point, a simple tutorial provided by Microsoft was followed (https://github.com/Microsoft/vscode-extension-samples/tree/master/helloworld-sample). Then we started to explore some opensource projects to see how to integrate the VSCode API with speech recognition software like (https://github.com/lanly-dev/VSCode-VoiceCommands). Then we start experimenting with speech software recognition, with some offline solutios as well as some APIs to decide what was our better option. Then we implemented some scripts or apps to get the speech to text functionality and then link it to the extension. Finaly we prepared the extension to publish to the Visual Studio Code Marketplace.
 
 
-We used python as a programing lenguage, and a bunch of libraries and dependances like the [Telegram Python wrapper](https://python-telegram-bot.org) for the Telegram bot comunication, the [SpeechRecognition](https://pypi.org/project/SpeechRecognition/)  library for the speech function, the [AudioSegment wrapper](https://pypi.org/project/audiosegment/) for transform audio files to be compatible with the differents libraries and ffmpeg framework as a dependence of AudioSegment. Also we used Hidora to host the application.
 
 ## Challenges we ran into
 

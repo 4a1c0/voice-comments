@@ -232,7 +232,7 @@ class VoiceListener {
 	}
   
 	run(lang: String) {
-	  if (this.sysType === 'win32') {
+	  if (this.sysType === 'some day'){		//'win32') {
 		// console.log('Using Microsoft Speech Platform')
 		this.child = this.execFile(join(__dirname, 'WordsMatching.exe')).on('error', (error: any) => showError(error));
 	  } else {
