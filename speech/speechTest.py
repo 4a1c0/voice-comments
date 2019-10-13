@@ -5,7 +5,7 @@
 import speech_recognition as sr
 import sys
 
-lang = sys.argv[1]
+lang = sys.argv[1]                             # Get the language from arguments
 
 r = sr.Recognizer()
 with sr.Microphone() as source:                # use the default microphone as the audio source
@@ -22,26 +22,7 @@ except sr.RequestError as e:
     sys.stderr.write("Could not request results from Google Speech Recognition service; {0}".format(e))
 sys.stdout.flush()
 
-                                         # call the stop function to stop the background thread
-
-# # obtain audio from the microphone
-# r = sr.Recognizer()
-# while 1:
-#     with sr.Microphone() as source:
-#         print("Say something!")
-        
-#         audio = r.listen(source)
-
-#         try:
-#         # for testing purposes, we're just using the default API key
-#         # to use another API key, use `r.recognize_google(audio, key="GOOGLE_SPEECH_RECOGNITION_API_KEY")`
-#         # instead of `r.recognize_google(audio)`
-#             print("Google Speech Recognition thinks you said:  " + r.recognize_google(audio))
-#         except sr.UnknownValueError:
-#             print("Google Speech Recognition could not understand audio")
-#         except sr.RequestError as e:
-#             print("Could not request results from Google Speech Recognition service; {0}".format(e))
-
+                                         
 
 
         # # recognize speech using Sphinx
