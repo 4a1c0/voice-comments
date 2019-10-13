@@ -6,6 +6,8 @@
 
 Speak while programming to document the code
 
+![GIF demo](https://media.giphy.com/media/dy3qWrogvXyvMTD7qX/giphy.gif)
+
 ## Requirements
 
 ### Mac/Linux
