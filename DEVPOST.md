@@ -1,12 +1,16 @@
 ## Inspiration
 
-Our goal is to improve the experience of the developers. Most of the code around the Internet isn't properly commented because it is a hassle to write comments. To solve this issue we have developed this extension. 
+The goal of this small project is to improve the developer experience while coding by deploying a tool to make it easier to comment one's code. Most of the code found on the internet has few lines of commentaries or none at all; this is due to how uncomfortable and time consuming it is for the coder to write those comments. With the solution we are presentng, we aim to transform the task of writting commentaries from something boring, repetitive and tiring to a more comfortable and helping task to do.
+
 
 ## What it does
 
-It searches for the next flight to the cities indicated to the Telegram bot via text or via a voice note. 
+This VS Code add-on uses speech recognition to transform the coder's verbal words into textual commentaries adapted and inserted to the code that is being developed.
 
 ## How we built it
+
+The first step to start working on this project was to be able to use a Visual Code API, to accomplish this first point, a simple tutorial provided by Microsoft was followed (https://github.com/Microsoft/vscode-extension-samples/tree/master/helloworld-sample). 
+
 
 We used python as a programing lenguage, and a bunch of libraries and dependances like the [Telegram Python wrapper](https://python-telegram-bot.org) for the Telegram bot comunication, the [SpeechRecognition](https://pypi.org/project/SpeechRecognition/)  library for the speech function, the [AudioSegment wrapper](https://pypi.org/project/audiosegment/) for transform audio files to be compatible with the differents libraries and ffmpeg framework as a dependence of AudioSegment. Also we used Hidora to host the application.
 
