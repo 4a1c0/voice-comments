@@ -2,7 +2,7 @@
 // Import the module and reference it with the alias vscode in your code below
 'use strict';
 
-import { spawn } from 'child_process';
+import { spawn, execFile, execFileSync } from 'child_process';
 import { platform } from 'os';
 import { join } from 'path';
 import * as vscode from 'vscode';
@@ -14,41 +14,38 @@ function addCommentSide (option: string) {														// The only input is goi
 
 	var editor = vscode.window.activeTextEditor;												// In variable editor the current editor is stored 			
 	if (editor){																				// If the editor exists
-		var localEditor = editor;																// Store it in an aux variable (to avoid overwritting)
-		const position = localEditor.selection.active;											// In variable position the position of current writting point (pointer) is stored
-		vscode.commands.executeCommand('acceptSelectedSuggestion').then(() => {					// helpito				
+		var localEditor = editor;																// Store it in an aux variable (to avoid using an uninitialized variable)
+		const position = localEditor.selection.active;											// In the position variable the location of current writting point (cursor) is stored
+		vscode.commands.executeCommand('editor.action.insertLineAfter').then(() => {			// command to write the commentary inline
+			var lineIndex = localEditor.selection.active.line;									// store the line where the cursor is right now (where the comment must be written)
+			var lineObject = localEditor.document.lineAt(lineIndex);							// insert new line 
+			var line = lineObject.text;															// the line of code that has to be commented is stored
+			var insertionSuccess = localEditor.edit((editBuilder) => {							// 
+			editBuilder.insert(new vscode.Position(lineIndex, 0), option);						// the speech string input (option) is in serted in the very begining of the new line (the one that was inserted)
 			
-			vscode.commands.executeCommand('editor.action.insertLineAfter').then(() => {		// command to write the commentary inline
-				var lineIndex = localEditor.selection.active.line;								// store the line where the cursor is right now (where the comment must be written)
-				var lineObject = localEditor.document.lineAt(lineIndex);						// insert new line 
-				var line = lineObject.text;														// the line of code that has to be commented is stored
-				var insertionSuccess = localEditor.edit((editBuilder) => {						// 
-				editBuilder.insert(new vscode.Position(lineIndex, 0), option);					// the speech string input (option) is in serted in the very begining of the new line (the one that was inserted)
-				
-				});
-		
-				if (!insertionSuccess) {return;}												//if insertion fails, skip
-				vscode.commands.executeCommand('editor.action.commentLine').then(() => {		//
-					var lineObjectComment = localEditor.document.lineAt(lineIndex);				//from the line where the string was inserted 
-					var lineComment = lineObjectComment.text;									//the string is stored in a var
-					localEditor.edit((editBuilder) => {
-						editBuilder.insert(new vscode.Position(lineIndex-1, line.length + 9999999 ), '  ' + lineComment); //the stored text is inserted on the very right of the actual code
-						
-					});
-					
-					var pos = new vscode.Position(position.line, position.character);
-					var posComment = new vscode.Position(position.line+1, position.character);
-					var commentSelection = new vscode.Selection(posComment, posComment);
-					var newSelection = new vscode.Selection(pos, pos);
-					localEditor.selection = commentSelection;
-					vscode.commands.executeCommand('editor.action.deleteLines').then(() => {
-						localEditor.selection = newSelection;
-					});
+			});
+	
+			if (!insertionSuccess) {return;}													//if insertion fails, skip
+			vscode.commands.executeCommand('editor.action.commentLine').then(() => {			//
+				var lineObjectComment = localEditor.document.lineAt(lineIndex);					//from the line where the string was inserted 
+				var lineComment = lineObjectComment.text;										//the string is stored in a var
+				localEditor.edit((editBuilder) => {
+					editBuilder.insert(new vscode.Position(lineIndex-1, line.length + 9999999 ), '  ' + lineComment); //the stored text is inserted on the very right of the actual code
 					
 				});
 				
+				var pos = new vscode.Position(position.line, position.character);
+				var posComment = new vscode.Position(position.line+1, position.character);
+				var commentSelection = new vscode.Selection(posComment, posComment);
+				var newSelection = new vscode.Selection(pos, pos);
+				localEditor.selection = commentSelection;
+				vscode.commands.executeCommand('editor.action.deleteLines').then(() => {
+					localEditor.selection = newSelection;
+				});
 				
 			});
+			
+			
 		});
 	}else {
 		return;
@@ -62,70 +59,50 @@ function addComment (option: string) {
 	if (editor){																				
 		var localEditor = editor;																
 		const position = localEditor.selection.active;											
-		vscode.commands.executeCommand('acceptSelectedSuggestion').then(() => {									
-			
-			vscode.commands.executeCommand('editor.action.insertLineBefore').then(() => {		// helpito attempt to execute the command to write in the line above
-				var lineIndex = localEditor.selection.active.line;								// the current (line) position is stored
-				var lineObject = localEditor.document.lineAt(lineIndex);						// helpito a new line is inserted above the current working line
-				var indentation = lineObject.text.length;										// the legth of the line of code (current line) being commented is stored
-				var insertionSuccess = localEditor.edit((editBuilder) => {						// the file gets edited in the current position (where the new line was inserted) by
-				editBuilder.insert(new vscode.Position(lineIndex, indentation), option);		// the input (option, a strng with the speech recognized) in inserted in the original line (above the code)
-				
-				});
-		
-				if (!insertionSuccess) {return;}												// if the insertion of the commentary failed we skip
-				vscode.commands.executeCommand('editor.action.commentLine').then(() => {		// The inserted line will be transformed into a commentary
-					var pos = new vscode.Position(position.line+1, position.character);			// helpito
-					var newSelection = new vscode.Selection(pos, pos);
-					localEditor.selection = newSelection;
-				});
-				
-				
+		vscode.commands.executeCommand('editor.action.insertLineBefore').then(() => {		// execute the command to add a the line above the current cursor, then
+			var lineIndex = localEditor.selection.active.line;								// the number of the current (new added line) position is stored
+			var lineObject = localEditor.document.lineAt(lineIndex);						// get the contents of the current line
+			var indentation = lineObject.text.length;										// the legth of the line of code (only the indentation) being commented is stored
+			var insertionSuccess = localEditor.edit((editBuilder) => {						// the file is modified in the current position (where the new line was inserted) by inserting
+			editBuilder.insert(new vscode.Position(lineIndex, indentation), option);		// the input (option, a strng with the speech recognized) in inserted in the original line (above the code)
 			});
+	
+			if (!insertionSuccess) {return;}												// if the insertion of the commentary failed we skip
+			vscode.commands.executeCommand('editor.action.commentLine').then(() => {		// The inserted line will be transformed into a commentary
+				var pos = new vscode.Position(position.line+1, position.character);			// the cursors is brought back to the original position before ending the recordinfg
+				var newSelection = new vscode.Selection(pos, pos);							// a new instance of a position object gets created
+				localEditor.selection = newSelection;										// and assigned to the current editor
+			});
+
 		});
-	}else {
+	}else {																					// if no editor skips the addition of comment
 		return;
 	}
 }
-
-function showJErrorMsg() {
-	vscode.window.showInformationMessage('Please install Python3 in order to run this extension!!!'); 		// if the commands couldn't be executed we show error
+// Function to show notification about the necessary dependences for the extension to work
+function showPErrorMsg() {
+	vscode.window.showInformationMessage('Please install Python3 + Speach_Recognition + PyAudio in order to run this extension!!!'); 		// if the commands couldn't be executed we show error
 }
 
-
-// function listen(context: vscode.ExtensionContext){
-// 	let checkJRE = false;
-// 	// window.showInformationMessage('This is Voice Command! activated');
-// 	const checkJREprocess = spawn('python3', ['--version']).on('error', err => showJErrorMsg());
-// 	checkJREprocess.stderr.on('data', (data: Buffer) => {
-// 		// console.log(data.toString())
-// 		if (data.indexOf('n 3') >= 0) { checkJRE = true; }
-// 		checkJREprocess.kill();
-// 	});
-// 	checkJREprocess.on('exit', (code, signal) => {
-// 		if (checkJRE === true) { var listener = new VoiceListener(context, platform()); }
-// 		else { showJErrorMsg(); }
-// 	});
-// }
-
-class SttBarItemSide {																				// Icon shown on the bottom bar to enable the recording functions (inline commentary)
-	private statusBarItem: vscode.StatusBarItem;
+// Class that represents the Icon shown on the bottom bar to enable the recording functions (inline commentary)
+class SttBarItemSide {																				
+	private statusBarItem: vscode.StatusBarItem;													// Necessary private variables
 	private stt: string; 
   
 	constructor() {																					// The Icon/button constructor
-	  this.statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 10);
+	  this.statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 10);	// Spawnig of the button in the stattus bar
 	  this.stt = "off";																				// the atribute state is set to off
 	  this.off();
 	}
   
 	on() {																							// on method is declared
-	  this.statusBarItem.text = '💬 side listening';												// declaration of the text for the on method
+	  this.statusBarItem.text = '🎙side listening';												// declaration of the text for the on method
 	  this.statusBarItem.show();																	// the text is printed to show it's on												
 	  this.stt = 'on';																				// the status in on since it is listening
 	}
   
 	off() {																							// off method
-	  this.statusBarItem.text = '✖️️ side stop';													// declaration of the text for the off method
+	  this.statusBarItem.text = '✖️️ Side Stop';													// declaration of the text for the off method
 	  this.statusBarItem.show();																	// the text is printed to show it's off			
 	  this.stt = 'off';																				// the status in off, recording stopped
 	}
@@ -135,7 +112,7 @@ class SttBarItemSide {																				// Icon shown on the bottom bar to ena
 	  return this.stt;
 	}
   
-	setSttCmd(cmd: string | undefined) {															//helpito
+	setSttCmd(cmd: string | undefined) {															// set the command to execute on click
 	  this.statusBarItem.command = cmd;
 	}
   }
@@ -154,7 +131,7 @@ class SttBarItem {
 	}
   
 	on() {
-	  this.statusBarItem.text = '💬 listening';
+	  this.statusBarItem.text = '🎙listening';
 	  this.statusBarItem.show();
 	  this.stt = 'on';
 	}
@@ -164,8 +141,6 @@ class SttBarItem {
 	  this.statusBarItem.show();
 	  this.stt = 'off';
 	}
-
-  
 	getSttText() {
 	  return this.stt;
 	}
@@ -174,7 +149,7 @@ class SttBarItem {
 	  this.statusBarItem.command = cmd;
 	}
   }
-
+// Object that implements the call to the speech recognition script and toggles the button
 class VoiceListenerSide {
 private sysType: String;																								// OS is being ran
 // @ts-ignore
@@ -186,26 +161,22 @@ private sttbar: SttBarItemSide;  																						// initialize icon bar ic
 constructor(context: vscode.ExtensionContext, type: String, lang: String) {												// constructor with OS type and language
 	this.sysType = type;
 	this.execFile = spawn;
-	this.sttbar = new SttBarItemSide();
-	const d1 = vscode.commands.registerCommand('toggleS', () => {
-	if (this.sttbar.getSttText() === 'on') {
+	this.sttbar = new SttBarItemSide();																					// Generates a Status bar button
+	const toggl = vscode.commands.registerCommand('toggleS', () => {													// Registers the toggleSide command
+	if (this.sttbar.getSttText() === 'on') {																			// if it's on turn it off
 		this.sttbar.off();
-		this.killed();
-	} else {
+		this.killed();																									// call to stop the recording 
+	} else {																											// if it's off turn it on
 		this.sttbar.on();
-		this.run(lang);
+		this.run(lang);																									// call to start the recording with the language configuration
 	}
 	});
-	const d2 = vscode.commands.registerCommand('stop_listenS', () => {
-	this.sttbar.off();
-	this.killed();
-	});
-	context.subscriptions.concat([d1, d2]);
-	this.sttbar.setSttCmd('toggleS');
+	context.subscriptions.push(toggl);																					// publish the command
+	this.sttbar.setSttCmd('toggleS');																					// set the command to toggle at click
 }
 
 run(lang: String) {
-	if (this.sysType === 'win32') {																						// if windows is being used
+	if (this.sysType === 'some day'){		//'win32') {																// if windows is being used (not implemented yet)
 	// console.log('Using Microsoft Speech Platform')
 	this.child = this.execFile(join(__dirname, 'WordsMatching.exe')).on('error', (error: any) => showError(error));		// the program words matching is executed to write the text form voice, 
 	} else {
@@ -222,18 +193,18 @@ run(lang: String) {
 	this.child.stderr.on('data', (data: any) => showError(data.toString()));
 
 	function showError(error: any) {																					// error detection
-	vscode.window.showInformationMessage(`Something went wrong Sorry 😢 - ${error}`);
+	vscode.window.showInformationMessage(`Something went wrong - ${error}`);
 	}
 }
 
 killed() {																												// process gets killed
-	this.child.stdin.write('sda');																						// some notification printed
+	this.child.stdin.write('die');																						// some notification printed
 	this.child.stdin.end();
 	//this.child.kill();
 }
 }
 
-// THIS CLASS AND FUCTIONS DO THE SAME AS THE ONE ABOVE BUT FOR THE WRITTING COMMENT ABOVE
+// THIS CLASS AND FUCTIONS DO THE SAME AS THE ONE ABOVE BUT FOR THE WRITTING COMMENT ABOVE except the addComment call 
 
 class VoiceListener {
 	private sysType: String;																							
@@ -247,7 +218,7 @@ class VoiceListener {
 	  this.sysType = type;																							
 	  this.execFile = spawn;
 	  this.sttbar = new SttBarItem();
-	  const d1 = vscode.commands.registerCommand('toggle', () => {
+	  const tggl = vscode.commands.registerCommand('toggle', () => {
 		if (this.sttbar.getSttText() === 'on') {
 			this.sttbar.off();
 			this.killed();
@@ -256,16 +227,12 @@ class VoiceListener {
 			this.run(lang);
 		}
 	  });
-	  const d2 = vscode.commands.registerCommand('stop_listen', () => {
-		this.sttbar.off();
-		this.killed();
-	  });
-	  context.subscriptions.concat([d1, d2]);
+	  context.subscriptions.push(tggl);
 	  this.sttbar.setSttCmd('toggle');
 	}
   
 	run(lang: String) {
-	  if (this.sysType === 'win32') {
+	  if (this.sysType === 'some day'){		//'win32') {
 		// console.log('Using Microsoft Speech Platform')
 		this.child = this.execFile(join(__dirname, 'WordsMatching.exe')).on('error', (error: any) => showError(error));
 	  } else {
@@ -276,20 +243,19 @@ class VoiceListener {
 		(data: Buffer) => {
 		  vscode.window.setStatusBarMessage(data.toString(), 1000);
 		  console.log(data.toString());
-		  addComment(data.toString().trimRight());
+		  addComment(data.toString().trimRight());	// Add comment at the upper line
 		});
   
 	  this.child.stderr.on('data', (data: any) => showError(data.toString()));
   
 	  function showError(error: any) {
-		vscode.window.showInformationMessage(`Something went wrong Sorry 😢 - ${error}`);
+		vscode.window.showInformationMessage(`Something went wrong - ${error}`);
 	  }
 	}
   
 	killed() {
-		this.child.stdin.write('sda');
+		this.child.stdin.write('die');
 		this.child.stdin.end();
-	  //this.child.kill();
 	}
   }
   
@@ -318,35 +284,31 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(sideComment);
 
 
-	var listen = vscode.commands.registerCommand('extension.voiceComment', () => {
-		let checkJRE = false;
-		// window.showInformationMessage('This is Voice Command! activated');
-		const checkJREprocess = spawn('java', ['-version']).on('error', err => showJErrorMsg());
-		checkJREprocess.stderr.on('data', (data: Buffer) => {
-			// console.log(data.toString())
-			if (data.indexOf('version') >= 0) { checkJRE = true; }
-			checkJREprocess.kill();
+	var listen = vscode.commands.registerCommand('extension.voiceComment', () => {						// registers the above line voice comment
+		let checkPython = false;																		// checks if the dependences are installed and notifies the user to install them
+		const checkPythonprocess = execFile('python3', ['-c','import sys; import speech_recognition; print(sys.version_info[0]); sys.stdout.flush()']).on('error', err => showPErrorMsg());
+		checkPythonprocess.stdout.on('data', (data: Buffer) => {
+			if (data.indexOf('3') >= 0) { checkPython = true; }											// using pithon3
+			checkPythonprocess.kill();
 		});
-		checkJREprocess.on('exit', (code, signal) => {
-			if (checkJRE === true) { var listener = new VoiceListener(context, platform(), lang); }
-			else { showJErrorMsg(); }
+		checkPythonprocess.on('exit', (code, signal) => {
+			if (checkPython === true) { var listener = new VoiceListener(context, platform(), lang); }	// Init the voice listener
+			else { showPErrorMsg(); }
 		});
 	});
 
 	context.subscriptions.push(listen);
 
-	var sideListen = vscode.commands.registerCommand('extension.iVoiceComment', () => {
-		let checkJRE = false;
-		// window.showInformationMessage('This is Voice Command! activated');
-		const checkJREprocess = spawn('java', ['-version']).on('error', err => showJErrorMsg());
-		checkJREprocess.stderr.on('data', (data: Buffer) => {
-			// console.log(data.toString())
-			if (data.indexOf('version') >= 0) { checkJRE = true; }
-			checkJREprocess.kill();
+	var sideListen = vscode.commands.registerCommand('extension.iVoiceComment', () => {					// registers the above side line voice comment equal to the one before changing the object that instatiates
+		let checkPython = false;
+		const checkPythonprocess = execFile('python3', ['-c','import sys; import speech_recognition; print(sys.version_info[0]); sys.stdout.flush()']).on('error', err => showPErrorMsg());
+		checkPythonprocess.stdout.on('data', (data: Buffer) => {
+			if (data.indexOf('3') >= 0) { checkPython = true; }
+			checkPythonprocess.kill();
 		});
-		checkJREprocess.on('exit', (code, signal) => {
-			if (checkJRE === true) { var listener = new VoiceListenerSide(context, platform(), lang); }
-			else { showJErrorMsg(); }
+		checkPythonprocess.on('exit', (code, signal) => {
+			if (checkPython === true) { var listener = new VoiceListenerSide(context, platform(), lang); }
+			else { showPErrorMsg(); }
 		});
 	});
 

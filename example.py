@@ -9,4 +9,5 @@ def fibonachi(n=5):
         a[i] = a[i - 1] + a[i - 2]
 
 for f in fibonachi(int(input("Fibonachi until after: nº "))):
+
     print(f)
