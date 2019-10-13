@@ -2,7 +2,7 @@
 	"name": "voice-comments",
 	"displayName": "Voice Comments",
 	"description": "Helps write comments with voice",
-	"version": "0.2.1",
+	"version": "0.2.2",
 	"publisher": "4a1c0",
 	"engines": {
 		"vscode": "^1.39.0"
